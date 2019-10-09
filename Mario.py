@@ -4,6 +4,7 @@ import time
 import numpy
 import math
 import types
+import pickle
 object_alive=[]
 white = (255,255,255)
 black=(0,0,0)
@@ -72,7 +73,6 @@ def load_map(map_name):
 				for t2 in range(one[1][1]-1,one[1][1]+2):
 					if t1!=one[1][0]+1 or t2!=one[1][1]:
 						collision_map[t1][t2]=1
-clock = pygame.time.Clock()
 load_map("Mario_map.txt")
 pygame.init()
 size = display_width*25, display_height*25
@@ -81,12 +81,26 @@ pygame.display.set_caption("Mario")
 background = pygame.image.load("background.PNG")
 background_rect=background.get_rect()
 background_rect.center=(display_width*25/2,display_height*25/2)
+map_obj_list=[]
+def deal_map():
+	for i in range(display_height+1):
+		for j in range(display_width+1):
+			if locations[i-1][j-1]!=0:
+				if locations[i-1][j-1] in picture_dic.keys():
+					map_obj_list.append((pygame.image.load(picture_dic[locations[i-1][j-1]]),((j-1)*25,(i-1)*25)))
+deal_map()
 def draw_map():
+	screen.blit(background, background_rect)
+	for each in map_obj_list:
+		screen.blit(each[0],each[1])
+'''def draw_map():
 	screen.blit(background, background_rect)
 	for i in range(display_height+1):
 		for j in range(display_width+1):
-			if locations[i-1][j-1] in picture_dic.keys():
-				screen.blit(pygame.image.load(picture_dic[locations[i-1][j-1]]),((j-1)*25,(i-1)*25))
+			####
+			if locations[i-1][j-1]!=0:
+				if locations[i-1][j-1] in picture_dic.keys():
+					screen.blit(pygame.image.load(picture_dic[locations[i-1][j-1]]),((j-1)*25,(i-1)*25))'''	
 jump_lab=0
 mushroom_lab=0
 class an_object:
@@ -289,10 +303,21 @@ def mov_and_draw_objects():
 		one.mov()
 		one.draw()
 jump_start_time=0
+PIK = "pickle.dat"
+def save():
+	#global jump_lab
+	#global mushroom_lab
+	#global jump_start_time
+	data=()
+	with open(PIK, "wb") as f:
+		pickle.dump((object_alive,jump_lab,mushroom_lab,jump_start_time),f)
+def load():
+	with open(PIK, "rb") as f:
+		(object_alive,jump_lab,mushroom_lab,jump_start_time)=pickle.load(f)
 if __name__ == "__main__":
+	clock1=pygame.time.Clock()	
 	key_keep=pygame.K_0
-	while(1):
-		clock.tick(600)
+	while True:
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				sys.exit()
@@ -310,6 +335,15 @@ if __name__ == "__main__":
 				jump_lab=1
 			if time.time()-jump_start_time < 0.6:
 				object_alive[0].force(3)
-		draw_map()		
+		if key_keep==pygame.K_s:
+			save()
+		if key_keep==pygame.K_l:
+			load()
+		draw_map()
 		mov_and_draw_objects()
-		pygame.display.flip()	
+		pygame.display.update()
+		#pygame.display.flip()
+		#print(clock1.get_fps())
+		time_passed=clock1.tick(40)
+			
+		
